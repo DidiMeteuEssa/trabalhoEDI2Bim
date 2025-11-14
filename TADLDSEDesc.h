@@ -70,13 +70,14 @@ void inserirOrdenado(tpFilaPaciente &d, tpPaciente novo)
 		d.qtde++;
 }
 
-void retirar(tpFilaPaciente &d)
+tpPaciente retirar(tpFilaPaciente &d)
 {
 	tpPaciente *aux = d.inicio;
-	printf("\nRemovido elemento: %s\n", aux->nome);
+	tpPaciente retirado = *aux;
 	d.inicio = aux->prox;
 	delete aux;
 	d.qtde--;
+	return retirado;
 }
 
 void exibir(tpFilaPaciente d)

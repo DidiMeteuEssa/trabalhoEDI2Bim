@@ -1,39 +1,43 @@
- // ---------------------------//
+// ---------------------------//
 // LISTA DUPLAMENTE ENCADEADA //
 // ---------------------------//
-
-struct tpEmAtendimento
+struct tpMedico
 {
-	int info;			
-	tpEmAtendimento *ant, *prox; 
+	int id;
+	int tempoRestante;
+	int pacientesAtendidos;
+	tpPaciente pacienteAtual;
+	int ocupado;
 };
 
-
-tpEmAtendimento *NovaCaixa(int valor)
+struct tpListaMedicos
 {
-	tpEmAtendimento *caixa = new tpEmAtendimento;
-	caixa->ant = NULL;			
-	caixa->prox = NULL;
-	caixa->info = valor; 
-	return caixa;		
+	tpMedico medico;
+	tpListaMedicos *ant, *prox;
+};
+
+tpListaMedicos *NovaCaixa(int id)
+{
+	tpListaMedicos *m = new tpListaMedicos;
+	m->medico.id = id;
+	m->medico.tempoRestante = 0;
+	m->medico.pacientesAtendidos = 0;
+	m->medico.ocupado = 0;
+	m->ant = m->prox = NULL;
+	return m;
 }
 
-tpEmAtendimento *InsOrdenada(tpEmAtendimento *L)
+tpListaMedicos *Inserir(tpListaMedicos *L, int qtde)
 {
-	int elemento;	
-	tpEmAtendimento *NC, *P; 
-	printf("\nInsercao ordenada Lista dinamica duplamente encadeada");
+	tpListaMedicos *NC, *P;
 
-	printf("\nElemento: ");
-	scanf("%d", &elemento); 
-	
-	while (elemento != 0)
+	for (int i = 0; i < qtde; i++)
 	{
-		NC = NovaCaixa(elemento);
+		NC = NovaCaixa(i + 1);
 
 		if (L == NULL)
 			L = NC;
-		else if (elemento <= L->info)
+		else if ((i + 1) <= L->medico.id)
 		{
 			NC->prox = L;
 			L->ant = NC;
@@ -43,7 +47,7 @@ tpEmAtendimento *InsOrdenada(tpEmAtendimento *L)
 		{
 			P = L;
 
-			while (P->prox != NULL && P->prox->info < elemento)
+			while (P->prox != NULL && P->prox->medico.id < (i + 1))
 				P = P->prox;
 
 			if (P->prox == NULL)
@@ -59,41 +63,49 @@ tpEmAtendimento *InsOrdenada(tpEmAtendimento *L)
 				P->prox = NC;
 			}
 		}
-
-		printf("\nElemento: ");
-		scanf("%d", &elemento);
 	}
 
-	return L; 
+	return L;
 }
 
-void Exibir(tpEmAtendimento *L)
+tpListaMedicos *BuscarMedicoLivre(tpListaMedicos *L)
 {
-	if (L == NULL)
+	tpListaMedicos *aux = L;
+
+	while (aux != NULL && aux->medico.ocupado != 0)
+		aux = aux->prox;
+
+	return aux;
+}
+
+void AtualizarMedicos(tpListaMedicos *L, int &atendidosVerde, int &atendidosAmarelo, int &atendidosVermelho)
+{
+	while (L != NULL)
 	{
-		printf("\nLista vazia!\n");
-		return;
+		if (L->medico.ocupado == 1)
+		{
+			L->medico.tempoRestante--;
+
+			if (L->medico.tempoRestante <= 0)
+			{
+				L->medico.ocupado = 0;
+
+				if (strcmp(L->medico.pacienteAtual.categoria, "Vermelho") == 0)
+					atendidosVermelho++;
+				else if (strcmp(L->medico.pacienteAtual.categoria, "Amarelo") == 0)
+					atendidosAmarelo++;
+				else if (strcmp(L->medico.pacienteAtual.categoria, "Verde") == 0)
+					atendidosVerde++;
+
+				L->medico.pacientesAtendidos++;
+
+				strcpy(L->medico.pacienteAtual.nome, "");
+				strcpy(L->medico.pacienteAtual.categoria, "");
+				L->medico.pacienteAtual.tempoTratamento = 0;
+				L->medico.pacienteAtual.chegada = 0;
+			}
+		}
+
+		L = L->prox;
 	}
-
-	tpEmAtendimento *P = L; 
-	printf("\n--- Exibindo lista do início ao fim ---\n");
-
-	while (P != NULL)
-	{
-		printf("%d ", P->info);
-
-		if (P->prox == NULL)
-			break; 
-		P = P->prox;
-	}
-
-	printf("\n--- Exibindo lista do fim ao inicio ---\n");
-
-	while (P != NULL)
-	{
-		printf("%d ", P->info);
-		P = P->ant;
-	}
-
-	printf("\n");
 }

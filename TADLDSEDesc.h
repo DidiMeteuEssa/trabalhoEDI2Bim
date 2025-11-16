@@ -5,7 +5,7 @@
 struct tpPaciente
 {
 	char categoria[20], nome[30], queixa[50], data[11];
-	int tempoTratamento, prioridade;
+	int tempoTratamento, prioridade, chegada;
 	tpPaciente *prox;
 };
 
@@ -31,6 +31,7 @@ tpPaciente *novaCaixa(tpPaciente novo)
 	strcpy(NC->data, novo.data);
 	NC->tempoTratamento = novo.tempoTratamento;
 	NC->prioridade = novo.prioridade;
+	NC->chegada = 0;
 	NC->prox = NULL;
 	return NC;
 }

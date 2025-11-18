@@ -68,6 +68,26 @@ tpListaMedicos *Inserir(tpListaMedicos *L, int qtde)
 	return L;
 }
 
+tpListaMedicos *removerMedico(tpListaMedicos *lista)
+{
+	if (lista == NULL)
+	{
+		printf("Nao ha medicos para remover.\n");
+	}
+	else
+	{
+		tpListaMedicos *remover = lista; // primeiro nó
+		lista = lista->prox;			 // avança lista
+
+		if (lista != NULL)
+			lista->ant = NULL; // se for lista dupla
+
+		delete remover;
+	}
+
+	return lista;
+}
+
 tpListaMedicos *BuscarMedicoLivre(tpListaMedicos *L)
 {
 	tpListaMedicos *aux = L;
@@ -78,8 +98,10 @@ tpListaMedicos *BuscarMedicoLivre(tpListaMedicos *L)
 	return aux;
 }
 
-void AtualizarMedicos(tpListaMedicos *L, int &atendidosVerde, int &atendidosAmarelo, int &atendidosVermelho)
+tpPaciente AtualizarMedicos(tpListaMedicos *L, int &atendidosVerde, int &atendidosAmarelo, int &atendidosVermelho)
 {
+	tpPaciente aux;
+	aux.tempoTratamento = -1;
 	while (L != NULL)
 	{
 		if (L->medico.ocupado == 1)
@@ -89,6 +111,7 @@ void AtualizarMedicos(tpListaMedicos *L, int &atendidosVerde, int &atendidosAmar
 			if (L->medico.tempoRestante <= 0)
 			{
 				L->medico.ocupado = 0;
+				aux = L->medico.pacienteAtual;
 
 				if (strcmp(L->medico.pacienteAtual.categoria, "Vermelho") == 0)
 					atendidosVermelho++;
@@ -108,4 +131,6 @@ void AtualizarMedicos(tpListaMedicos *L, int &atendidosVerde, int &atendidosAmar
 
 		L = L->prox;
 	}
+
+	return aux;
 }

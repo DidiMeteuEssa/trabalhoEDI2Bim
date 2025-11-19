@@ -208,7 +208,7 @@ int main()
 
         listaMedico = Inicializar(listaMedico, qtdeMedicos);
 
-        tempoInserirPaciente = rand() % 2 + 1;
+        tempoInserirPaciente = rand() % 3 + 1;
 
         xAlta = 107;
         yAlta = 6;
@@ -342,7 +342,7 @@ int main()
                         inserir(verde, novo);
                     }
 
-                    tempoInserirPaciente = rand() % 2 + 1;
+                    tempoInserirPaciente = rand() % 3 + 1;
                 }
             }
 

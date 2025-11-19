@@ -8,6 +8,7 @@ struct tpMedico
 	int pacientesAtendidos;
 	tpPaciente pacienteAtual;
 	int ocupado;
+	int marcarRemocao;
 };
 
 struct tpListaMedicos
@@ -24,10 +25,11 @@ tpListaMedicos *NovaCaixa(int id)
 	m->medico.pacientesAtendidos = 0;
 	m->medico.ocupado = 0;
 	m->ant = m->prox = NULL;
+	m->medico.marcarRemocao = 0;
 	return m;
 }
 
-tpListaMedicos *Inserir(tpListaMedicos *L, int qtde)
+tpListaMedicos *Inicializar(tpListaMedicos *L, int qtde)
 {
 	tpListaMedicos *NC, *P;
 
@@ -68,34 +70,115 @@ tpListaMedicos *Inserir(tpListaMedicos *L, int qtde)
 	return L;
 }
 
-tpListaMedicos *removerMedico(tpListaMedicos *lista)
+tpListaMedicos *Inserir(tpListaMedicos *L, int id)
 {
-	if (lista == NULL)
+	tpListaMedicos *NC, *P;
+
+	P = L;
+	while (P != NULL && P->medico.id != id)
+		P = P->prox;
+
+	if (P != NULL)
 	{
-		printf("Nao ha medicos para remover.\n");
+		textcolor(12);
+		limparPainel(3, 9, 104, 9);
+		gotoxy(3, 9);
+		printf("Este ID ja existe!");
+		textcolor(15);
 	}
 	else
 	{
-		tpListaMedicos *remover = lista; // primeiro nó
-		lista = lista->prox;			 // avança lista
+		NC = NovaCaixa(id);
 
-		if (lista != NULL)
-			lista->ant = NULL; // se for lista dupla
+		if (L == NULL)
+			L = NC;
+		else if (id <= L->medico.id)
+		{
+			NC->prox = L;
+			L->ant = NC;
+			L = NC;
+		}
+		else
+		{
+			P = L;
 
-		delete remover;
+			while (P->prox != NULL && P->prox->medico.id < id)
+				P = P->prox;
+
+			if (P->prox == NULL)
+			{
+				P->prox = NC;
+				NC->ant = P;
+			}
+			else
+			{
+				NC->prox = P->prox;
+				NC->ant = P;
+				P->prox->ant = NC;
+				P->prox = NC;
+			}
+		}
+	}
+
+	return L;
+}
+
+tpListaMedicos *removerMedico(tpListaMedicos *lista, int id)
+{
+	if (lista == NULL)
+	{
+		textcolor(12);
+		limparPainel(3, 9, 104, 9);
+		gotoxy(3, 9);
+		printf("Nao ha medicos para remover.\n");
+		textcolor(15);
+	}
+	else
+	{
+		tpListaMedicos *aux = lista;
+
+		while (aux != NULL && aux->medico.id != id)
+			aux = aux->prox;
+
+		if (aux == NULL)
+		{
+			textcolor(12);
+			limparPainel(3, 9, 104, 9);
+			gotoxy(3, 9);
+			printf("Medico com ID %d nao encontrado.\n", id);
+			textcolor(15);
+		}
+		else if (aux->medico.ocupado == 1)
+		{
+			aux->medico.marcarRemocao = 1;
+
+			textcolor(14);
+			limparPainel(3, 9, 104, 9);
+			gotoxy(3, 9);
+			printf("Medico %d esta atendendo. Remocao pendente.\n", id);
+			textcolor(15);
+		}
+		else
+		{
+			if (aux->ant != NULL)
+				aux->ant->prox = aux->prox;
+			else
+				lista = aux->prox;
+
+			if (aux->prox != NULL)
+				aux->prox->ant = aux->ant;
+
+			limparPainel(3, 9, 104, 9);
+			gotoxy(3, 9);
+			textcolor(10);
+			printf("Medico %d removido.\n", id);
+			textcolor(15);
+
+			delete aux;
+		}
 	}
 
 	return lista;
-}
-
-tpListaMedicos *BuscarMedicoLivre(tpListaMedicos *L)
-{
-	tpListaMedicos *aux = L;
-
-	while (aux != NULL && aux->medico.ocupado != 0)
-		aux = aux->prox;
-
-	return aux;
 }
 
 tpPaciente AtualizarMedicos(tpListaMedicos *L, int &atendidosVerde, int &atendidosAmarelo, int &atendidosVermelho)

@@ -36,7 +36,7 @@ tpPaciente *novaCaixa(tpPaciente novo)
 	return NC;
 }
 
-void inserirOrdenado(tpFilaPaciente &d, tpPaciente novo)
+void inserir(tpFilaPaciente &d, tpPaciente novo)
 {
 	tpPaciente *caixa;
 	tpPaciente *ant, *atual;
@@ -44,29 +44,10 @@ void inserirOrdenado(tpFilaPaciente &d, tpPaciente novo)
 		caixa = novaCaixa(novo);
 		if (d.qtde == 0)
 			d.inicio = d.fim = caixa;
-		else if (novo.prioridade <= d.inicio->prioridade)
-		{
-			caixa->prox = d.inicio;
-			d.inicio = caixa;
-		}
-		else if (novo.prioridade >= d.fim->prioridade)
+		else 
 		{
 			d.fim->prox = caixa;
 			d.fim = caixa;
-		}
-		else
-		{
-			ant = d.inicio;
-			atual = d.inicio->prox;
-
-			while (atual->prioridade < novo.prioridade)
-			{
-				ant = atual;
-				atual = atual->prox;
-			}
-
-			caixa->prox = atual;
-			ant->prox = caixa;
 		}
 		d.qtde++;
 }

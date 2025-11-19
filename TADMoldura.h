@@ -42,8 +42,7 @@ void centralizarTexto(int linha, int colInicio, int colFim, const char *texto)
 void molduraSistema()
 {
 
-    textcolor(10);
-    // cabecalho, rodape e moldura principal
+    textcolor(11);
     DesenhaMoldura(1, 1, 3, 209);
     DesenhaMoldura(3, 1, 10, 105);
     DesenhaMoldura(49, 1, 51, 209);
@@ -52,7 +51,9 @@ void molduraSistema()
     DesenhaMoldura(10, 1, 12, 105);
     DesenhaMoldura(3, 198, 5, 209);
     DesenhaMoldura(3, 105, 5, 209);
-    DesenhaMoldura(3, 1, 36, 105);
+    DesenhaMoldura(10, 1, 36, 35);
+    DesenhaMoldura(10, 35, 36, 70);
+    DesenhaMoldura(10, 70, 36, 105);
 
     gotoxy(1, 3);
     printf("%c", 204);
@@ -92,16 +93,33 @@ void molduraSistema()
     gotoxy(209, 49);
     printf("%c", 185);
 
+    gotoxy(35, 10);
+    printf("%c", 203);
+    gotoxy(70, 10);
+    printf("%c", 203);
+    gotoxy(35, 12);
+    printf("%c", 206);
+    gotoxy(70, 12);
+    printf("%c", 206);
+    gotoxy(35, 36);
+    printf("%c", 202);
+    gotoxy(70, 36);
+    printf("%c", 202);
+
     gotoxy(200, 4);
     printf("UT: 0");
 
-    textcolor(13);
+    textcolor(15);
     centralizarTexto(2, 1, 209, "TRABALHO DE ED1 - SISTEMA DE TRIAGEM");
 
     centralizarTexto(50, 1, 209, "DIEGO FELIPPE DA F. CALESCO / JOAO GABRIEL DA SILVA");
 
+    textcolor(10);
+    centralizarTexto(11, 1, 36, "Fila Verde");
     textcolor(14);
-    centralizarTexto(11, 1, 104, "Pacientes na Fila");
+    centralizarTexto(11, 36, 70, "Fila Amarelo");
+    textcolor(12);
+    centralizarTexto(11, 70, 105, "Fila Vermelho");
 
     centralizarTexto(4, 105, 209, "Pacientes que receberam alta");
 }
@@ -110,15 +128,13 @@ void limparPainel(int xInicio, int yInicio, int xFinal, int yFinal)
 {
     int largura = xFinal - xInicio + 1;
 
-    // Cria manualmente uma linha de espaços
     char linha[300];
     for (int i = 0; i < largura; i++)
     {
         linha[i] = ' ';
     }
-    linha[largura] = '\0'; // fim da string
+    linha[largura] = '\0'; 
 
-    // Agora imprime uma linha inteira por vez
     for (int y = yInicio; y <= yFinal; y++)
     {
         gotoxy(xInicio, y);

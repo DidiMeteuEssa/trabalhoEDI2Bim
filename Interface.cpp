@@ -6,47 +6,141 @@
 #include <windows.h>
 #include <math.h>
 #include <time.h>
-#include "conio2.h"
+#include <conio2.h>
 
+#include "TADMoldura.h"
 #include "TADLDSEDesc.h"
 #include "TADLDDE.h"
-#include "TADMoldura.h"
 
-tpListaMedicos *menuPausa(tpListaMedicos *lista)
+void encerrarSimulacao(tpListaMedicos *lista, int &encerrarSim, int atendidosVerde, int atendidosAmarelo,
+                       int atendidosVermelho, int somaEsperaVerde, int somaEsperaAmarelo,
+                       int somaEsperaVermelho, tpFilaPaciente verde,
+                       tpFilaPaciente amarelo, tpFilaPaciente vermelho)
 {
-    int opc;
+    limparPainel(3, 4, 104, 8);
+    limparPainel(3, 37, 205, 48);
+
+    tpListaMedicos *aux = lista;
+    int naoAtendidos = verde.qtde + amarelo.qtde + vermelho.qtde;
+    int x = 103, y = 40;
+
+    textcolor(9);
+    centralizarTexto(37, 3, 204, "-------- RELATORIO FINAL --------");
+    gotoxy(3, 39);
+    printf("Total de pacientes atendidos por classificacao: ");
+    gotoxy(3, 40);
+    printf("# Verde: [%d]", atendidosVerde);
+    gotoxy(3, 41);
+    printf("# Amarelo: [%d]", atendidosAmarelo);
+    gotoxy(3, 42);
+    printf("# Vermelho: [%d]", atendidosVermelho);
+
+    gotoxy(3, 44);
+    printf("Tempo medio de espera por classificacao:");
+    gotoxy(3, 45);
+    printf("# Verde: %.2f UT", (float)somaEsperaVerde / atendidosVerde);
+    gotoxy(3, 46);
+    printf("# Amarelo: %.2f UT", (float)somaEsperaAmarelo / atendidosAmarelo);
+    gotoxy(3, 47);
+    printf("# Vermelho: %.2f UT", (float)somaEsperaVermelho / atendidosVermelho);
+
+    gotoxy(53, 39);
+    printf("Pacientes na fila que não foram atendidos: %d", naoAtendidos);
+    gotoxy(53, 40);
+    printf("# Verde: [%d]", verde.qtde);
+    gotoxy(53, 41);
+    printf("# Amarelo: [%d]", amarelo.qtde);
+    gotoxy(53, 42);
+    printf("# Vermelho: [%d]", vermelho.qtde);
+
+    gotoxy(103, 39);
+    printf("Total de pacientes atendidos por medico: ");
+    while (lista != NULL)
+    {
+        gotoxy(x, y);
+        printf("# Medico [%d]: [%d]", lista->medico.id, lista->medico.pacientesAtendidos);
+        lista = lista->prox;
+
+        y++;
+
+        if (y > 48)
+        {
+            y = 40;
+            x = x + 19;
+        }
+    }
+
+    x = 153;
+    y = 40;
+    gotoxy(153, 39);
+    printf("Status dos medicos");
+    lista = aux;
+    while (lista != NULL)
+    {
+        gotoxy(x, y);
+        printf("# Medico %d: %s", lista->medico.id, lista->medico.ocupado ? "ocupado" : "livre");
+        lista = lista->prox;
+
+        y++;
+
+        if (y > 48)
+        {
+            y = 40;
+            x = x + 21;
+        }
+    }
+
+    encerrarSim = 1;
+    getch();
+}
+
+tpListaMedicos *menuPausa(tpListaMedicos *lista, int &encerrarSim, int atendidosVerde, int atendidosAmarelo,
+                          int atendidosVermelho, int somaEsperaVerde, int somaEsperaAmarelo,
+                          int somaEsperaVermelho, tpFilaPaciente verde,
+                          tpFilaPaciente amarelo, tpFilaPaciente vermelho)
+{
+    int opc, id;
+    limparPainel(3, 4, 104, 8);
 
     do
     {
-        limparPainel(3, 4, 104, 8);
         gotoxy(3, 4);
-        printf("=== SIMULACAO PAUSADA ===");
+        printf("--------- SIMULACAO PAUSADA ---------");
         gotoxy(3, 5);
         printf("1 - Adicionar medico");
         gotoxy(3, 6);
-        printf("2 - Remover primeiro medico");
+        printf("2 - Remover medico");
         gotoxy(3, 7);
         printf("3 - Continuar simulacao");
         gotoxy(3, 8);
-        printf("Opcao: ");
-
+        printf("4 - Encerrar simulacao");
+        gotoxy(3, 9);
         scanf("%d", &opc);
 
-        gotoxy(3, 9);
         if (opc == 1)
         {
-            lista = Inserir(lista, 1);
-            printf("Medico adicionado!\n");
+            limparPainel(3, 9, 104, 9);
+            gotoxy(3, 9);
+            printf("Digite o ID do medico: ");
+            scanf("%d", &id);
+            lista = Inserir(lista, id);
         }
         else if (opc == 2)
         {
-            lista = removerMedico(lista);
-            printf("Medico removido.");
+            limparPainel(3, 9, 104, 9);
+            gotoxy(3, 9);
+            printf("Digite o ID do medico: ");
+            scanf("%d", &id);
+            lista = removerMedico(lista, id);
+        }
+        else if (opc == 4)
+        {
+            encerrarSimulacao(lista, encerrarSim, atendidosVerde, atendidosAmarelo, atendidosVermelho, somaEsperaVerde, somaEsperaAmarelo, somaEsperaVermelho, verde, amarelo, vermelho);
         }
 
     } while (opc != 3);
 
-    limparPainel(3, 4, 104, 8);
+    limparPainel(3, 4, 104, 9);
 
     gotoxy(3, 9);
     printf("Simulacao retomada...\n");
@@ -66,7 +160,8 @@ int main()
     FILE *arq = fopen("Pacientes.txt", "r");
     if (arq == NULL)
     {
-        printf("Erro ao abrir o arquivo.\n");
+        gotoxy(3, 14);
+        printf("Erro ao abrir o arquivo.");
         getch();
     }
     else
@@ -78,6 +173,7 @@ int main()
         tpListaMedicos *p = listaMedico;
         tpFilaPaciente verde, amarelo, vermelho;
         tpPaciente novo, retirado, alta;
+        tpPaciente *exibirFila;
 
         retirado.chegada = 0;
         strcpy(retirado.categoria, "");
@@ -86,7 +182,8 @@ int main()
 
         int qtdeMedicos, temPaciente = 0, ut = 0, duracaoSimulacao, tempoInserirPaciente = 0,
                          atendidosVerde = 0, atendidosAmarelo = 0, atendidosVermelho = 0, somaEsperaVerde = 0,
-                         somaEsperaAmarelo = 0, somaEsperaVermelho = 0, x, y, temInsercao, xPaciente, yPaciente, xAlta, yAlta;
+                         somaEsperaAmarelo = 0, somaEsperaVermelho = 0, x, y, xAlta, yAlta, encerrarSim = 0,
+                         yPaciente;
 
         inicializar(verde);
         inicializar(amarelo);
@@ -94,39 +191,70 @@ int main()
 
         do
         {
-            gotoxy(3, 14);
+            gotoxy(3, 4);
             printf("Digite a quantidade de medicos disponiveis (max 18): ");
             scanf("%d", &qtdeMedicos);
         } while (qtdeMedicos < 0 || qtdeMedicos > 18);
 
-        gotoxy(3, 15);
+        gotoxy(3, 5);
         printf("Digite o limite de tempo da simulacao: ");
         scanf("%d", &duracaoSimulacao);
 
-        limparPainel(12, 6, 58, 6);
-        limparPainel(3, 13, 104, 35);
+        limparPainel(3, 4, 104, 8);
 
-        listaMedico = Inserir(listaMedico, qtdeMedicos);
+        listaMedico = Inicializar(listaMedico, qtdeMedicos);
 
-        tempoInserirPaciente = rand() % 10 + 1;
-
-        xPaciente = 3;
-        yPaciente = 13;
+        tempoInserirPaciente = rand() % 2 + 1;
 
         xAlta = 107;
         yAlta = 6;
 
         do
         {
+
             ut++;
-            temInsercao = 0;
 
-            limparPainel(3, 37, 208, 48);
+            limparPainel(3, 37, 205, 48);
 
+            limparPainel(3, 13, 34, 35);
+            limparPainel(37, 13, 69, 35);
+            limparPainel(71, 13, 104, 35);
+
+            exibirFila = verde.inicio;
+            yPaciente = 13;
+            textcolor(10);
+            while (exibirFila != NULL)
+            {
+                centralizarTexto(yPaciente, 3, 35, exibirFila->nome);
+                exibirFila = exibirFila->prox;
+                yPaciente++;
+            }
+
+            exibirFila = amarelo.inicio;
+            yPaciente = 13;
+            textcolor(14);
+            while (exibirFila != NULL)
+            {
+                centralizarTexto(yPaciente, 37, 69, exibirFila->nome);
+                exibirFila = exibirFila->prox;
+                yPaciente++;
+            }
+
+            exibirFila = vermelho.inicio;
+            yPaciente = 13;
+            textcolor(12);
+            while (exibirFila != NULL)
+            {
+                centralizarTexto(yPaciente, 71, 104, exibirFila->nome);
+                exibirFila = exibirFila->prox;
+                yPaciente++;
+            }
+
+            textcolor(14);
             gotoxy(200, 4);
             printf("UT: %d", ut);
 
-            gotoxy(78, 13);
+            gotoxy(76, 4);
             printf("Proximo paciente em: %d UT. ", tempoInserirPaciente);
 
             gotoxy(3, 4);
@@ -134,10 +262,41 @@ int main()
 
             alta = AtualizarMedicos(listaMedico, atendidosVerde, atendidosAmarelo, atendidosVermelho);
 
+            tpListaMedicos *iter = listaMedico;
+            while (iter != NULL)
+            {
+                tpListaMedicos *proximo = iter->prox;
+                if (iter->medico.marcarRemocao == 1 && iter->medico.ocupado == 0)
+                {
+                    int idRem = iter->medico.id;
+                    listaMedico = removerMedico(listaMedico, idRem);
+                }
+                iter = proximo;
+            }
+
+            textcolor(15);
             if (alta.tempoTratamento != -1)
             {
                 gotoxy(xAlta, yAlta);
-                printf("%s [%s] recebeu alta!", alta.nome, alta.categoria);
+                printf("%s ", alta.nome);
+
+                if (strcmp(alta.categoria, "Verde") == 0)
+                    textcolor(10);
+                else if (strcmp(alta.categoria, "Amarelo") == 0)
+                    textcolor(14);
+                else if (strcmp(alta.categoria, "Vermelho") == 0)
+                    textcolor(12);
+
+                printf("[%s]", alta.categoria);
+
+                textcolor(15);
+                printf(" recebeu");
+
+                textcolor(10);
+                printf(" alta!");
+
+                textcolor(15);
+
                 yAlta++;
 
                 if (yAlta > 35)
@@ -166,36 +325,20 @@ int main()
                     if (strcmp(novo.categoria, "Vermelho") == 0)
                     {
                         novo.prioridade = 1;
-                        inserirOrdenado(vermelho, novo);
-                        temInsercao = 1;
+                        inserir(vermelho, novo);
                     }
                     else if (strcmp(novo.categoria, "Amarelo") == 0)
                     {
                         novo.prioridade = 2;
-                        inserirOrdenado(amarelo, novo);
-                        temInsercao = 1;
+                        inserir(amarelo, novo);
                     }
                     else if (strcmp(novo.categoria, "Verde") == 0)
                     {
                         novo.prioridade = 3;
-                        inserirOrdenado(verde, novo);
-                        temInsercao = 1;
+                        inserir(verde, novo);
                     }
 
-                    if (temInsercao)
-                    {
-                        gotoxy(xPaciente, yPaciente);
-                        printf("%s chegou na fila com categoria %s", novo.nome, novo.categoria);
-                        yPaciente++;
-
-                        if (yPaciente > 35)
-                        {
-                            limparPainel(3, 13, 104, 35);
-                            yPaciente = 13;
-                        }
-                    }
-
-                    tempoInserirPaciente = rand() % 10 + 1;
+                    tempoInserirPaciente = rand() % 2 + 1;
                 }
             }
 
@@ -244,6 +387,7 @@ int main()
 
             x = 3;
             y = 37;
+            textcolor(15);
             while (p != NULL)
             {
                 gotoxy(x, y);
@@ -252,19 +396,30 @@ int main()
                 gotoxy(x, y + 1);
                 if (p->medico.ocupado == 1)
                 {
+                    textcolor(14);
                     printf("Status: ocupado");
                     gotoxy(x, y + 2);
+                    textcolor(15);
                     printf("Atendendo: %s", p->medico.pacienteAtual.nome);
+
+                    if (strcmp(p->medico.pacienteAtual.categoria, "Verde") == 0)
+                        textcolor(10);
+                    else if (strcmp(p->medico.pacienteAtual.categoria, "Amarelo") == 0)
+                        textcolor(14);
+                    else if (strcmp(p->medico.pacienteAtual.categoria, "Vermelho") == 0)
+                        textcolor(12);
 
                     gotoxy(x, y + 3);
                     printf("Urgencia: %s", p->medico.pacienteAtual.categoria);
 
+                    textcolor(15);
                     gotoxy(x, y + 4);
                     printf("T. restante %d:", p->medico.tempoRestante);
                 }
 
                 else
                 {
+                    textcolor(10);
                     printf("Status: livre");
                     gotoxy(x, y + 2);
                     printf("Atendendo: N/A");
@@ -291,50 +446,23 @@ int main()
                 char tecla = getch();
                 if (tecla == 'p' || tecla == 'P')
                 {
-                    menuPausa(listaMedico);
+                    menuPausa(listaMedico, encerrarSim, atendidosVerde, atendidosAmarelo, atendidosVermelho, somaEsperaVerde, somaEsperaAmarelo, somaEsperaVermelho, verde, amarelo, vermelho);
                 }
             }
 
-            Sleep(500);
-        } while (ut < duracaoSimulacao);
+            p = listaMedico;
 
-        printf("\n\n");
-        printf("RELATORIO FINAL\n");
-        printf("Total de pacientes atendidos por classificacao: \n");
-        printf("Verde: [%d], Amarelo: [%d], Vermelho: [%d]", atendidosVerde, atendidosAmarelo, atendidosVermelho);
-        printf("\nTotal de pacientes atendidos por medico: \n");
+            while (p != NULL && p->medico.ocupado == 0)
+                p = p->prox;
 
-        p = listaMedico;
-        while (p != NULL)
-        {
-            printf("Medico %d: %d |  ", p->medico.id, p->medico.pacientesAtendidos);
-            p = p->prox;
-        }
+            if (ut >= duracaoSimulacao || feof(arq) && verde.qtde == 0 && amarelo.qtde == 0 && vermelho.qtde == 0 && p == NULL)
+            {
+                encerrarSimulacao(listaMedico, encerrarSim, atendidosVerde, atendidosAmarelo, atendidosVermelho, somaEsperaVerde, somaEsperaAmarelo, somaEsperaVermelho, verde, amarelo, vermelho);
+                encerrarSim = 1;
+            }
 
-        printf("\nTempo médio de espera:\n");
-        printf("Verde: %.2f UT\n", (float)somaEsperaVerde / atendidosVerde);
-        printf("Amarelo: %.2f UT\n", (float)somaEsperaAmarelo / atendidosAmarelo);
-        printf("Vermelho: %.2f UT\n", (float)somaEsperaVermelho / atendidosVermelho);
-
-        int naoAtendidos = verde.qtde + amarelo.qtde + vermelho.qtde;
-        printf("\nPacientes na fila que não foram atendidos: %d\n", naoAtendidos);
-
-        if (vermelho.qtde > 0)
-            printf("Vermelho: %d\n", vermelho.qtde);
-        if (amarelo.qtde > 0)
-            printf("Amarelo: %d\n", amarelo.qtde);
-        if (verde.qtde > 0)
-            printf("Verde: %d\n", verde.qtde);
-
-        printf("\nStatus dos medicos\n");
-
-        p = listaMedico;
-        while (p != NULL)
-        {
-            printf("Medico %d: %s\n", p->medico.id, p->medico.ocupado ? "ocupado" : "livre");
-            p = p->prox;
-        }
-
+            Sleep(250);
+        } while (encerrarSim != 1);
         fclose(arq);
     }
 

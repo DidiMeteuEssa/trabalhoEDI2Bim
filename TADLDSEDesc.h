@@ -39,8 +39,6 @@ tpPaciente *novaCaixa(tpPaciente novo)
 void inserir(tpFilaPaciente &d, tpPaciente novo)
 {
 	tpPaciente *caixa;
-	tpPaciente *ant, *atual;
-	
 		caixa = novaCaixa(novo);
 		if (d.qtde == 0)
 			d.inicio = d.fim = caixa;
